@@ -47,15 +47,19 @@ openssl x509 -req -in ${username}.csr \
 cat ca-cert.pem >> ${username}-cert.pem
 
 #Step 6: Import the signed certificate to the clientkeystore 
-yes | keytool -importcert -file ${username}-cert.pem \
+yes | keytool -importcert -trustcacerts -file ca-cert.pem \
   -keystore $keystore \
   -storepass $password \
-  -alias client
+  -alias rootca
+
+#Step 7: 
+keytool -importcert -file ${username}-cert.pem -keystore $keystore -storepass $password -alias client
+
 
 #Step 7: Move the files to the correct foleder
 mkdir $path
 mv ${username}-cert.pem $path
-mv ${username}truststore $path
-mv ${username}keystore $path
+mv $truststore $path
+mv $keystore $path
 rm ${username}.csr
 
