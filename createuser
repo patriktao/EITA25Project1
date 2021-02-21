@@ -1,0 +1,61 @@
+#/usr/bin/env bash
+
+#To create a new user, we need the CA certificate. We need to create a new keypair for the user, then create a csr from that keypair, sign it with the CA certificate, get the .pem user certificate, and add that to the server truststore.
+
+#The command takes a username and a password in that order
+username=$1;
+password=$2;
+
+echo $username;
+echo $password;
+
+path=./users/${username}/
+truststore=${username}truststore;
+keystore=${username}keystore;
+
+echo $truststore;	
+
+#Step 1: Create truststore for the client.
+yes | keytool \
+  -import -file ca-cert.pem \
+  -keystore $truststore \
+  -alias $truststore \
+  -storepass $password
+
+#Step 2: Generate keystore and key pair.
+yes | keytool -genkeypair \
+  -keystore $keystore \
+  -alias client \
+  -storepass $password -keypass $password \
+  -dname "CN=$username"
+
+#Step 3: Create a certificate signing request for the client key pair.
+yes | keytool -certreq \
+  -keystore $keystore \
+  -alias client \
+  -keyalg rsa -file ${username}.csr \
+  -storepass $password
+
+#Step 4: Sign the client CSR with the CA cert.
+openssl x509 -req -in ${username}.csr \
+  -CA ca-cert.pem -CAkey ca-key.pem \
+  -CAcreateserial \
+  -passin pass:password \
+  -out ${username}-cert.pem
+
+#Step 5: Create the certificate chain for the client
+cat ca-cert.pem >> ${username}-cert.pem
+
+#Step 6: Import the signed certificate to the clientkeystore 
+yes | keytool -importcert -file ${username}-cert.pem \
+  -keystore $keystore \
+  -storepass $password \
+  -alias client
+
+#Step 7: Move the files to the correct foleder
+mkdir $path
+mv ${username}-cert.pem $path
+mv ${username}truststore $path
+mv ${username}keystore $path
+rm ${username}.csr
+

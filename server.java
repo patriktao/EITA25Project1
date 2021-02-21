@@ -5,6 +5,63 @@ import javax.net.*;
 import javax.net.ssl.*;
 import javax.security.cert.X509Certificate;
 
+class Indiv {
+    private String name = "";
+
+    public Indiv(String name){
+        this.name = name;        
+    }     
+
+}
+
+class Doctor extends Indiv{
+    private String department = "";
+    public Doctor(String name, String department){
+	super(name);
+        this.department = department;
+    }
+}
+
+
+class Nurse extends Indiv{
+    private String department = "";
+    public Nurse(String name, String department){
+	super(name);
+        this.department = department;
+    }
+}   
+
+
+class Gov extends Indiv{
+	public Gov(String name){
+	    super(name);
+	}
+}   
+
+
+
+class Patient extends Indiv{
+    private Record record; 
+    public Patient(String name, Record record){
+ 	super(name);
+        this.record = record;
+    }
+}   
+
+class Record {
+    private Doctor doctor;
+    private Nurse nurse;
+    private String department = "";
+    private String data = "";
+
+    public Record(Doctor doctor, Nurse nurse, String department, String data){
+        this.doctor = doctor;
+        this.nurse = nurse;
+        this.department = department;
+        this.data = data;
+    }
+}
+
 public class server implements Runnable {
     private ServerSocket serverSocket = null;
     private static int numConnectedClients = 0;
@@ -12,12 +69,17 @@ public class server implements Runnable {
     public server(ServerSocket ss) throws IOException {
         serverSocket = ss;
         newListener();
-	Indiv[] doctors = [new Doctor("Elna", "Data")];
-        Indiv[] nurses = [new Nurse("Gabriel", "Data")];
-	Indiv[] govs = [new Gov("Patrik")];
-	Record r1 = new Record(nurses[0], doctors[0], "Data", "This patient has a severe headache! Prescribing Paracetamol in large doses.");
-	Indiv[] patients = [new Patient("Oscar", r1)];
-	Record[] db = [r1];
+	Indiv[] doctors = new Indiv[100];
+	doctors[0] = new Doctor("Elna", "Data");
+        Indiv[] nurses = new Indiv[100];
+	nurses[0] = new Nurse("Gabriel", "Data");
+	Indiv[] govs = new Indiv[100];
+	govs[0] = new Gov("Patrik");
+	Record r1 = new Record( (Doctor)doctors[0], (Nurse)nurses[0], "Data", "This patient has a severe headache! Prescribing Paracetamol in large doses.");
+	Indiv[] patients = new Indiv[100];
+	patients[0] = new Patient("Oscar", r1);
+	Record[] db = new Record[100];
+	db[0] = r1;
     }
 
     public void run() {
@@ -42,7 +104,7 @@ public class server implements Runnable {
             while ((clientMsg = in.readLine()) != null) {
 	    //If the user is authentic, then the clientmessage will be a correct 
 			    String rev = new StringBuilder(clientMsg).reverse().toString();
-                System.out.println("received '" + clientMsg + "' from client");
+                System.out.println("received '" + clientMsg + "' from " + subject);
                 System.out.print("sending '" + rev + "' to client...");
 				out.println(rev);
 				out.flush();
