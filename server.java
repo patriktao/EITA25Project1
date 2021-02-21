@@ -12,6 +12,12 @@ public class server implements Runnable {
     public server(ServerSocket ss) throws IOException {
         serverSocket = ss;
         newListener();
+	Indiv[] doctors = [new Doctor("Elna", "Data")];
+        Indiv[] nurses = [new Nurse("Gabriel", "Data")];
+	Indiv[] govs = [new Gov("Patrik")];
+	Record r1 = new Record(nurses[0], doctors[0], "Data", "This patient has a severe headache! Prescribing Paracetamol in large doses.");
+	Indiv[] patients = [new Patient("Oscar", r1)];
+	Record[] db = [r1];
     }
 
     public void run() {
@@ -21,6 +27,7 @@ public class server implements Runnable {
             SSLSession session = socket.getSession();
             X509Certificate cert = (X509Certificate)session.getPeerCertificateChain()[0];
             String subject = cert.getSubjectDN().getName();
+            //Check the authenticety of the request.
     	    numConnectedClients++;
             System.out.println("client connected");
             System.out.println("client name (cert subject DN field): " + subject);
@@ -33,6 +40,7 @@ public class server implements Runnable {
 
             String clientMsg = null;
             while ((clientMsg = in.readLine()) != null) {
+	    //If the user is authentic, then the clientmessage will be a correct 
 			    String rev = new StringBuilder(clientMsg).reverse().toString();
                 System.out.println("received '" + clientMsg + "' from client");
                 System.out.print("sending '" + rev + "' to client...");
@@ -85,7 +93,7 @@ public class server implements Runnable {
                 char[] password = "password".toCharArray();
 
                 ks.load(new FileInputStream("serverkeystore"), password);  // keystore password (storepass)
-                ts.load(new FileInputStream("servertruststore"), password); // truststore password (storepass)
+                ts.load(new FileInputStream("servertruststore"), password); // truststore password (storepass) //This is where the log in information about the users is stored.
                 kmf.init(ks, password); // certificate password (keypass)
                 tmf.init(ts);  // possible to use keystore as truststore here
                 ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
