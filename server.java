@@ -93,8 +93,9 @@ class Record {
     public String write(String name, String data){
 	if(ACL.get(name).get(write)){    
             this.data = data;
+	    return "updated data to " + data;
         } else {
-            
+            return "access denied";
         }
     }
  
