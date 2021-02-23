@@ -1,4 +1,5 @@
 import java.io.*;
+import java.util.HashMap;
 import java.net.*;
 import java.security.KeyStore;
 import javax.net.*;
@@ -6,7 +7,7 @@ import javax.net.ssl.*;
 import javax.security.cert.X509Certificate;
 
 class Indiv {
-    private String name = "";
+    protected String name = "";
 
     public Indiv(String name){
         this.name = name;        
@@ -20,6 +21,11 @@ class Doctor extends Indiv{
 	super(name);
         this.department = department;
     }
+    
+    public String toString(){
+        return super.name + " from department: " + department;
+    }
+
 }
 
 
@@ -29,6 +35,10 @@ class Nurse extends Indiv{
 	super(name);
         this.department = department;
     }
+
+    public String toString(){
+        return super.name + " from department: " + department; 
+    }
 }   
 
 
@@ -36,6 +46,10 @@ class Gov extends Indiv{
 	public Gov(String name){
 	    super(name);
 	}
+
+    public String toString(){
+        return name; 
+    }
 }   
 
 
@@ -46,26 +60,54 @@ class Patient extends Indiv{
  	super(name);
         this.record = record;
     }
-}   
+
+    public String toString(){
+        return name + record;
+    }
+}  
 
 class Record {
     private Doctor doctor;
     private Nurse nurse;
     private String department = "";
     private String data = "";
+    private HashMap<String, HashMap<String, Boolean>> ACL = new HashMap();    
+        
 
     public Record(Doctor doctor, Nurse nurse, String department, String data){
         this.doctor = doctor;
         this.nurse = nurse;
         this.department = department;
         this.data = data;
+        
+    }
+    
+    public String read(String name){
+	if(ACL.get(name).get("read")){
+	    return data;
+	} else {
+	    return "access denied";
+        }
+    }
+
+    public String write(String name, String data){
+	if(ACL.get(name).get(write)){    
+            this.data = data;
+        } else {
+            
+        }
+    }
+ 
+    public String toString(){
+        return "Doctor: " + doctor + ", Nurse: " + nurse + ", Department: " + department + ", Data: " + data;
     }
 }
 
 public class server implements Runnable {
     private ServerSocket serverSocket = null;
     private static int numConnectedClients = 0;
-
+    private HashMap<String, Record> db;
+    
     public server(ServerSocket ss) throws IOException {
         serverSocket = ss;
         newListener();
@@ -78,8 +120,9 @@ public class server implements Runnable {
 	Record r1 = new Record( (Doctor)doctors[0], (Nurse)nurses[0], "Data", "This patient has a severe headache! Prescribing Paracetamol in large doses.");
 	Indiv[] patients = new Indiv[100];
 	patients[0] = new Patient("Oscar", r1);
-	Record[] db = new Record[100];
-	db[0] = r1;
+	
+	this.db = new HashMap();
+	db.put(patients[0].toString(), r1);
     }
 
     public void run() {
@@ -103,10 +146,16 @@ public class server implements Runnable {
             String clientMsg = null;
             while ((clientMsg = in.readLine()) != null) {
 	    //If the user is authentic, then the clientmessage will be a correct 
-			    String rev = new StringBuilder(clientMsg).reverse().toString();
-                System.out.println("received '" + clientMsg + "' from " + subject);
-                System.out.print("sending '" + rev + "' to client...");
-				out.println(rev);
+		String res = "";
+		switch(clientMsg){
+			case "print all": {
+    				res = db.get("Oscar").toString();
+ 			}
+                }
+		
+		System.out.println("received '" + clientMsg + "' from " + subject);
+                System.out.print("sending information to client...");
+				out.println(res);
 				out.flush();
                 System.out.println("done\n");
 			}
