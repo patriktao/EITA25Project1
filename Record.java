@@ -17,8 +17,8 @@ class Record {
         this.data = data;
         this.auditLog = new ArrayList();
 	HashMap<String, Boolean> clientEntry = new HashMap();
-	clientEntry.put("read", true);
-        this.ACL.put("Oscar Cederb erg (os7138ce-s)/Elna Seyer (el3888se-s)/Patrik Tao (pa0676ta-s)/Gabriel Borglund (ga4112bo-s)", clientEntry);
+	clientEntry.put("read", false);
+        this.ACL.put("CN=elna", clientEntry);
     }
     
     public String read(String name){
