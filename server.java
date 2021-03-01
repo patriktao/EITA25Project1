@@ -38,13 +38,24 @@ public class server implements Runnable {
         this.govMap = new HashMap();
         govMap.put("Patrik", new Gov("Patrik"));
 
-        Record r1 = new Record( doctorMap.get("Elna"), nurseMap.get("Gabriel"), "Data", "This patient has a severe headache! Prescribing Paracetamol in large doses.");
+        Record r1 = new Record( doctorMap.get("Elna"), nurseMap.get("Gabriel"), patientMap.get("Oscar"), "Data", "This patient has a severe headache! Prescribing Paracetamol in large doses.");
 
         this.patientMap = new HashMap();
         patientMap.put("Oscar", new Patient("Oscar", r1));
         
         this.db = new HashMap();
 	    db.put("Oscar", r1);
+    }
+
+    private Indiv getFromAll(String key){
+        if(doctorMap.get(key) != null){
+            return doctorMap.get(key);
+        } else if(nurseMap.get(key) != null){
+            return nurseMap.get(key);
+        } else if(govMap.get(key) != null){
+            return govMap.get(key);
+        }
+        return null;
     }
 
     public void run() {
@@ -54,6 +65,7 @@ public class server implements Runnable {
             SSLSession session = socket.getSession();
             X509Certificate cert = (X509Certificate)session.getPeerCertificateChain()[0];
             String subject = cert.getSubjectDN().getName();
+            String personName = subject.substring(3, subject.length());
             //Check the authenticety of the request.
     	    numConnectedClients++;
             System.out.println("client connected");
@@ -75,13 +87,17 @@ public class server implements Runnable {
             switch(command){
                 case "read": {
                     if(input.length == 2){
-                        res = db.get(input[1]).toString();
+                        res = db.get(input[1]).read(getFromAll(personName));
+                        
                     }
+                    break;
                 }
                 case "write": {
                     if(input.length == 3){
                         res = db.get(input[1]).write(input[1], input[2]);
+                        
                     }
+                    break;
                 }
                 case "create": {
                     if(input.length == 4){
@@ -91,17 +107,25 @@ public class server implements Runnable {
                         String department = input[4];
                         String data = input[5];
                         if(patient != null && doctor != null && nurse != null){
-                            Record record = new Record(doctor,nurse,department,data);
+                            Record record = new Record(doctor,nurse, patient, department,data);
                             db.put(patient.toString(), record);
                         }
+                        
                     }
                     res = "tried to create some data";
+                    break;
                 }
                 case "delete": {
+                    if(input.length == 2){
+                        db.remove(input[1]);
+                        
+                    }
                     res = "tried to delete some data";
+                    break;
                 }
                 default: {
                     res = "Command not found";
+                    break;
                 }
             }
 		

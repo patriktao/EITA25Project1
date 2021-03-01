@@ -6,6 +6,6 @@ class Nurse extends Indiv{
     }
 
     public String toString(){
-        return super.name + " from department: " + department; 
+        return super.name; 
     }
 }   

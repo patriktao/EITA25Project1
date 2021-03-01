@@ -5,30 +5,61 @@ import java.util.HashMap;
 class Record {
     private Doctor doctor;
     private Nurse nurse;
+    private Patient patient;
     private String department = "";
     private String data = "";
     private ArrayList<String> auditLog;
     private HashMap<String, HashMap<String, Boolean>> ACL = new HashMap();    
 
-    public Record(Doctor doctor, Nurse nurse, String department, String data){
+    public Record(Doctor doctor, Nurse nurse, Patient patient, String department, String data){
         this.doctor = doctor;
         this.nurse = nurse;
         this.department = department;
         this.data = data;
+        this.patient = patient;
         this.auditLog = new ArrayList();
-	HashMap<String, Boolean> clientEntry = new HashMap();
-	clientEntry.put("read", false);
-        this.ACL.put("CN=elna", clientEntry);
+	    HashMap<String, Boolean> doctorEntry = new HashMap();
+	    doctorEntry.put("read", true );
+        this.ACL.put("CN=" + doctor.toString() , doctorEntry);
+	    HashMap<String, Boolean> nurseEntry = new HashMap();
+	    nurseEntry.put("read", true);
+        this.ACL.put("CN=" + nurse.toString() , nurseEntry);
+        
+
+    }
+
+    private Boolean hasReadAccess(Indiv person){
+        switch(person.getClass().getSimpleName()){
+            case "Doctor": {
+                return false;
+            }
+
+            case "Person": {
+                
+                return false;
+            }
+
+            case "Nurse": {
+                return true;
+            }
+
+            case "Gov": {
+                return false;
+            }
+            default: {return false;}
+        }
     }
     
-    public String read(String name){
-        Boolean success = ACL.get(name).get("read");
-        addAuditEntry(name, "read", success);
+    public String read(Indiv person){
+        Boolean success = hasReadAccess(person);
 
-	    if(success){   
+        System.out.println(person.getClass().getSimpleName());
+        addAuditEntry(person.toString(), "read", success);
+
+	    if(success ){   
             return data;
         } else {
-            return "access denied";
+            return "access denied"; 
         }
     }
 
