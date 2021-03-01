@@ -70,9 +70,14 @@ public class server implements Runnable {
 			case "read": {
     				res = db.get(argument1).toString();
  			}
-			case "write": {
-				db.get(argument1).write(argument1, argument2);
-				res = "Wrote to the database!";
+			case "write": { 
+				res = db.get(argument1).write(argument1, argument2);
+			}
+			case "create": {
+				res = "tried to create some data";	
+			}
+			case "delete": {
+				res = "tried to delete some data"; 
 			}
 			default: {
 				res = "Command not found";
