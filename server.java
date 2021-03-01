@@ -50,10 +50,33 @@ public class server implements Runnable {
             while ((clientMsg = in.readLine()) != null) {
 	    //If the user is authentic, then the clientmessage will be a correct 
 		String res = "";
-		switch(clientMsg){
-			case "print all": {
-    				res = db.get("Oscar").toString();
+		String[] input = clientMsg.split(" ");
+		String command = "";
+		String argument1 = "";
+		String argument2 = "";
+		
+		try{
+			command = input[0];
+			System.out.println("Before the split");
+			argument1 = input[1];
+			argument2 = input[2];
+			
+			System.out.println("After the split");
+		} catch(Exception e){
+			
+		}		
+
+		switch(command){
+			case "read": {
+    				res = db.get(argument1).toString();
  			}
+			case "write": {
+				db.get(argument1).write(argument1, argument2);
+				res = "Wrote to the database!";
+			}
+			default: {
+				res = "Command not found";
+			}
                 }
 		
 		System.out.println("received '" + clientMsg + "' from " + subject);
