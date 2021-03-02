@@ -89,6 +89,8 @@ public class server implements Runnable {
                 case "read": {
                     if(input.length == 2){
                         Record r = db.get(input[1]);
+                        System.out.println(r);
+                        System.out.println("The found person would be: " + getFromAll(personName));
                         res = r.read(getFromAll(personName));
                         
                     }
@@ -102,7 +104,9 @@ public class server implements Runnable {
                     break;
                 }
                 case "create": {
-                    if(input.length == 4){
+                    System.out.println(input.length);
+
+                    if(input.length == 6){
                         Patient patient = patientMap.get(input[1]);
                         Doctor doctor = doctorMap.get(input[2]);
                         Nurse nurse = nurseMap.get(input[3]);
@@ -111,11 +115,16 @@ public class server implements Runnable {
                         if(patient != null && doctor != null && nurse != null){
                             Record record = new Record(doctor,nurse, patient, department,data);
                             patient.setInitRecord(record);
+                            System.out.println("Created the patient" + patient.toString());
                             db.put(patient.toString(), record);
+                            res = "Created the data";
+                        } else {
+                            res = "Failed to create the data";
                         }
+
+
                         
                     }
-                    res = "tried to create some data";
                     break;
                 }
                 case "delete": {
