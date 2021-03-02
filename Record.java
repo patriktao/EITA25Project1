@@ -9,7 +9,6 @@ class Record {
     private String department = "";
     private String data = "";
     private ArrayList<String> auditLog;
-    private HashMap<String, HashMap<String, Boolean>> ACL = new HashMap();    
 
     public Record(Doctor doctor, Nurse nurse, Patient patient, String department, String data){
         this.doctor = doctor;
@@ -18,29 +17,43 @@ class Record {
         this.data = data;
         this.patient = patient;
         this.auditLog = new ArrayList();
-	    HashMap<String, Boolean> doctorEntry = new HashMap();
-	    doctorEntry.put("read", true );
-        this.ACL.put("CN=" + doctor.toString() , doctorEntry);
-	    HashMap<String, Boolean> nurseEntry = new HashMap();
-	    nurseEntry.put("read", true);
-        this.ACL.put("CN=" + nurse.toString() , nurseEntry);
-        
 
     }
 
     private Boolean hasReadAccess(Indiv person){
         switch(person.getClass().getSimpleName()){
             case "Doctor": {
-                return false;
+                return ((Doctor) person).department.equals(this.department) || person.equals(this.doctor);
             }
 
-            case "Person": {
-                
-                return false;
+            case "Patient": {
+                return person.equals(patient);
             }
 
             case "Nurse": {
+                return ((Nurse) person).department.equals(this.department) || person.equals(this.nurse);
+            }
+
+            case "Gov": {
                 return true;
+            }
+            default: {return false;}
+        }
+    }
+
+
+    private Boolean hasWriteAccess(Indiv person){
+        switch(person.getClass().getSimpleName()){
+            case "Doctor": {
+                return person.equals(this.doctor);
+            }
+
+            case "Person": {
+                return person.equals(patient);
+            }
+
+            case "Nurse": {
+                return person.equals(this.nurse);
             }
 
             case "Gov": {
@@ -54,6 +67,7 @@ class Record {
         Boolean success = hasReadAccess(person);
 
         System.out.println(person.getClass().getSimpleName());
+        
         addAuditEntry(person.toString(), "read", success);
 
 	    if(success ){   
@@ -63,9 +77,9 @@ class Record {
         }
     }
 
-    public String write(String name, String data){
-        Boolean success = ACL.get(name).get("write");
-        addAuditEntry(name, "write", success);
+    public String write(Indiv person, String data){
+        Boolean success = hasWriteAccess(person);
+        addAuditEntry(person.toString(), "write", success);
 
 	    if(success){    
             this.data = data;

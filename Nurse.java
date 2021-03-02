@@ -1,5 +1,6 @@
 class Nurse extends Indiv{
-    private String department = "";
+    public String department = "";
+
     public Nurse(String name, String department){
 	super(name);
         this.department = department;

@@ -6,6 +6,7 @@ import javax.net.*;
 import javax.net.ssl.*;
 import javax.security.cert.X509Certificate;
 
+
 public class server implements Runnable {
     private ServerSocket serverSocket = null;
     private static int numConnectedClients = 0;
@@ -18,18 +19,6 @@ public class server implements Runnable {
     public server(ServerSocket ss) throws IOException {
         serverSocket = ss;
         newListener();
-
-        /*
-        Indiv[] doctors = new Indiv[100];
-        doctors[0] = new Doctor("Elna", "Data");
-        Indiv[] nurses = new Indiv[100];
-        nurses[0] = new Nurse("Gabriel", "Data");
-        Indiv[] govs = new Indiv[100];
-        govs[0] = new Gov("Patrik");
-        Record r1 = new Record( (Doctor)doctors[0], (Nurse)nurses[0], "Data", "This patient has a severe headache! Prescribing Paracetamol in large doses.");
-        Indiv[] patients = new Indiv[100];
-        patients[0] = new Patient("Oscar", r1);
-        */
         
         this.doctorMap = new HashMap();
         doctorMap.put("Elna", new Doctor("Elna", "Data"));
@@ -37,14 +26,24 @@ public class server implements Runnable {
         nurseMap.put("Gabriel", new Nurse("Gabriel", "Data"));
         this.govMap = new HashMap();
         govMap.put("Patrik", new Gov("Patrik"));
-
-        Record r1 = new Record( doctorMap.get("Elna"), nurseMap.get("Gabriel"), patientMap.get("Oscar"), "Data", "This patient has a severe headache! Prescribing Paracetamol in large doses.");
-
         this.patientMap = new HashMap();
-        patientMap.put("Oscar", new Patient("Oscar", r1));
-        
+
+        patientMap.put("John", new Patient("John", null));
+        doctorMap.put("Doe", new Doctor("Doe", "Department of deer"));
+        Record r2 = new Record(doctorMap.get("Doe"), nurseMap.get("Gabriel"), patientMap.get("John"), "Department of deer", "This patient is a deer...");
+        patientMap.get("John").setInitRecord(r2);
+
+
+        patientMap.put("Alice", new Patient("Alice", null));
+        patientMap.put("Bob", new Patient("Bob", null)); 
+
+        patientMap.put("Oscar", new Patient("Oscar", null));
+        Record r1 = new Record(doctorMap.get("Elna"), nurseMap.get("Gabriel"), patientMap.get("Oscar"), "Data", "This patient has a severe headache! Prescribing Paracetamol in large doses.");
+        patientMap.get("Oscar").setInitRecord(r1);
+
         this.db = new HashMap();
 	    db.put("Oscar", r1);
+        db.put("John", r2);
     }
 
     private Indiv getFromAll(String key){
@@ -54,6 +53,8 @@ public class server implements Runnable {
             return nurseMap.get(key);
         } else if(govMap.get(key) != null){
             return govMap.get(key);
+        } else if(patientMap.get(key) != null){
+            return patientMap.get(key);
         }
         return null;
     }
@@ -87,14 +88,15 @@ public class server implements Runnable {
             switch(command){
                 case "read": {
                     if(input.length == 2){
-                        res = db.get(input[1]).read(getFromAll(personName));
+                        Record r = db.get(input[1]);
+                        res = r.read(getFromAll(personName));
                         
                     }
                     break;
                 }
                 case "write": {
                     if(input.length == 3){
-                        res = db.get(input[1]).write(input[1], input[2]);
+                        res = db.get(input[1]).write(getFromAll(input[1]), input[2]);
                         
                     }
                     break;
@@ -108,6 +110,7 @@ public class server implements Runnable {
                         String data = input[5];
                         if(patient != null && doctor != null && nurse != null){
                             Record record = new Record(doctor,nurse, patient, department,data);
+                            patient.setInitRecord(record);
                             db.put(patient.toString(), record);
                         }
                         

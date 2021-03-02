@@ -5,4 +5,12 @@ class Indiv {
         this.name = name;        
     }     
 
+    public String toString(){
+        return this.name;
+    }
+
+    public Boolean equals(Indiv person){
+        return this.name.equals(person.toString());
+    }
+
 }
