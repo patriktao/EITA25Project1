@@ -85,6 +85,8 @@ public class server implements Runnable {
             String[] input = clientMsg.split(" ");
             String command = input[0];
 
+            try {
+
             switch(command){
                 case "read": {
                     if(input.length == 2){
@@ -128,11 +130,15 @@ public class server implements Runnable {
                     break;
                 }
                 case "delete": {
-                    if(input.length == 2){
+                    if(input.length == 2 && govMap.get(personName) != null){
+
                         db.remove(input[1]);
+                        res = "Deleted data!";
                         
+                    } else {
+                        res = "Data was not deleted!";
                     }
-                    res = "tried to delete some data";
+                    
                     break;
                 }
                 default: {
@@ -140,6 +146,10 @@ public class server implements Runnable {
                     break;
                 }
             }
+        } catch (Exception e) {
+            System.out.println("Something went wrong");
+            res = "Something went wrong. Try a new command!";
+        }
 		
 		    System.out.println("received '" + clientMsg + "' from " + subject);
             System.out.print("sending information to client...");
