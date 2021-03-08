@@ -15,11 +15,11 @@ public class server implements Runnable {
     private HashMap<String, Gov> govMap;
     private HashMap<String, Patient> patientMap;
     private HashMap<String, Record> db;
-    
+
     public server(ServerSocket ss) throws IOException {
         serverSocket = ss;
         newListener();
-        
+
         this.doctorMap = new HashMap();
         doctorMap.put("Elna", new Doctor("Elna", "Data"));
         this.nurseMap = new HashMap();
@@ -35,7 +35,7 @@ public class server implements Runnable {
 
 
         patientMap.put("Alice", new Patient("Alice", null));
-        patientMap.put("Bob", new Patient("Bob", null)); 
+        patientMap.put("Bob", new Patient("Bob", null));
 
         patientMap.put("Oscar", new Patient("Oscar", null));
         Record r1 = new Record(doctorMap.get("Elna"), nurseMap.get("Gabriel"), patientMap.get("Oscar"), "Data", "This patient has a severe headache! Prescribing Paracetamol in large doses.");
@@ -72,85 +72,73 @@ public class server implements Runnable {
             System.out.println("client connected");
             System.out.println("client name (cert subject DN field): " + subject);
             System.out.println(numConnectedClients + " concurrent connection(s)\n");
-
             PrintWriter out = null;
             BufferedReader in = null;
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
             String clientMsg = null;
             while ((clientMsg = in.readLine()) != null) {
-            //If the user is authentic, then the clientmessage will be a correct 
+            //If the user is authentic, then the clientmessage will be a correct
             String res = "";
             String[] input = clientMsg.split(" ");
             String command = input[0];
-
             try {
+	            switch(command){
+	                case "read": {
+	                    if(input.length == 2){
+	                        Record r = db.get(input[1]);
+	                        System.out.println(r);
+	                        System.out.println("The found person would be: " + getFromAll(personName));
+	                        res = r.read(getFromAll(personName));
+	                    }
+	                    break;
+	                }
+	                case "write": {
+	                    if(input.length == 3){
+	                        res = db.get(input[1]).write(getFromAll(input[1]), input[2]);
+	                    }
+	                    break;
+	                }
+	                case "create": {
+	                    System.out.println(input.length);
+	                    if(input.length == 6){
+	                        Patient patient = patientMap.get(input[1]);
+	                        Doctor doctor = doctorMap.get(input[2]);
+	                        Nurse nurse = nurseMap.get(input[3]);
+	                        String department = input[4];
+	                        String data = input[5];
+	                        if(patient != null && doctor != null && nurse != null){
+	                            Record record = new Record(doctor,nurse, patient, department,data);
+	                            patient.setInitRecord(record);
+	                            System.out.println("Created the patient" + patient.toString());
+	                            db.put(patient.toString(), record);
+	                            res = "Created the data";
+	                        } else {
+	                            res = "Failed to create the data";
+	                        }
+	                    }
+	                    break;
+	                }
+	                case "delete": {
+	                    if(input.length == 2 && govMap.get(personName) != null){
+	                        db.remove(input[1]);
+	                        res = "Deleted data!";
+	                    } else {
+	                        res = "Data was not deleted!";
+	                    }
 
-            switch(command){
-                case "read": {
-                    if(input.length == 2){
-                        Record r = db.get(input[1]);
-                        System.out.println(r);
-                        System.out.println("The found person would be: " + getFromAll(personName));
-                        res = r.read(getFromAll(personName));
-                        
-                    }
-                    break;
-                }
-                case "write": {
-                    if(input.length == 3){
-                        res = db.get(input[1]).write(getFromAll(input[1]), input[2]);
-                        
-                    }
-                    break;
-                }
-                case "create": {
-                    System.out.println(input.length);
-
-                    if(input.length == 6){
-                        Patient patient = patientMap.get(input[1]);
-                        Doctor doctor = doctorMap.get(input[2]);
-                        Nurse nurse = nurseMap.get(input[3]);
-                        String department = input[4];
-                        String data = input[5];
-                        if(patient != null && doctor != null && nurse != null){
-                            Record record = new Record(doctor,nurse, patient, department,data);
-                            patient.setInitRecord(record);
-                            System.out.println("Created the patient" + patient.toString());
-                            db.put(patient.toString(), record);
-                            res = "Created the data";
-                        } else {
-                            res = "Failed to create the data";
-                        }
-
-
-                        
-                    }
-                    break;
-                }
-                case "delete": {
-                    if(input.length == 2 && govMap.get(personName) != null){
-
-                        db.remove(input[1]);
-                        res = "Deleted data!";
-                        
-                    } else {
-                        res = "Data was not deleted!";
-                    }
-                    
-                    break;
-                }
-                default: {
-                    res = "Command not found";
-                    break;
-                }
-            }
+	                    break;
+	                }
+	                default: {
+	                    res = "Command not found";
+	                    break;
+	                }
+            	}
         } catch (Exception e) {
             System.out.println("Something went wrong");
             res = "Something went wrong. Try a new command!";
         }
-		
+
 		    System.out.println("received '" + clientMsg + "' from " + subject);
             System.out.print("sending information to client...");
 			out.println(res);
